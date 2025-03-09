@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">PictureProcessor</string>
+    <string name="select_image">Select image</string>
+    <string name="image_preview">IMAGE_PREVIEW</string>
+    <string name="picture_data_will_be_displayed_here">Picture data will be displayed here ..</string>
+
+    <string-array name="image_presets">
+
+        <item>Highlight Image</item>
+        <item>Hue Filter</item>
+
+
+        <item>Grayscale</item>
+        <item>Gamma Correction</item>
+        <item>Gaussian Blur</item>
+
+        <item>Filter Color Channel</item>
+        <item>Invert Image</item>
+
+        <item>Decrease Color Depth</item>
+        <item>Noise</item>
+
+        <item>Contrast</item>
+        <item>Color Boost Up</item>
+
+        <item>Rotate</item>
+        <item>Reflection</item>
+
+        <item>Brightness</item>
+        <item>Black Filter</item>
+
+        <item>Mean Removal</item>
+        <item>Mirroring</item>
+
+        <item>Smoothness</item>
+        <item>Sharpness</item>
+        <item>Sepia Toning</item>
+        <item>Saturation</item>
+        <item>Shading</item>
+
+        <item>Emboss</item>
+        <item>Engrave</item>
+
+
+    </string-array>
+
+</resources>

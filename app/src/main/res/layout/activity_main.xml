@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/MainLayoutStyle"
+    tools:context=".MainActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main_constraint"
+        android:layout_width="409dp"
+        android:layout_height="729dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imageView"
+            style="@style/PreviewImageStyle"
+            android:layout_width="match_parent"
+            android:layout_height="360dp"
+            android:contentDescription="@string/image_preview"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="397dp"
+            android:layout_height="99dp"
+            style="@style/ControlLayoutStyle"
+            android:layout_marginBottom="164dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <Spinner
+                android:id="@+id/dropdown"
+                android:layout_width="195dp"
+                android:layout_height="48dp"
+                style="@style/DropdownStyle"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/imagePick"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/ImagePickButtonStyle"
+                android:layout_weight="1"
+                android:text="@string/select_image" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/generateBtn"
+            android:layout_width="361dp"
+            android:layout_height="67dp"
+            style="@style/GenerateButtonStyle"
+            android:text="GENERATE"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+        <TextView
+            android:id="@+id/imageData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/ImageDataTextStyle"
+            android:text="@string/picture_data_will_be_displayed_here"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+        <Button
+            android:id="@+id/saveBtn"
+            android:layout_width="348dp"
+            android:layout_height="60dp"
+            style="@style/SaveButtonStyle"
+            android:text="SAVE"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/generateBtn" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
