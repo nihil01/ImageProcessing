@@ -3,19 +3,33 @@ package world.horosho.prictureprocessor.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import world.horosho.prictureprocessor.R;
+import world.horosho.prictureprocessor.http.Endpoints;
+import world.horosho.prictureprocessor.http.ImageFetchCallback;
 
 public class UIModifier {
     public boolean generatedFlag = false;
@@ -23,7 +37,8 @@ public class UIModifier {
     private final Context ctx;
     private final Bitmap image;
     private final ImageInterface listener;
-    private List<View> dynamicViews = new ArrayList<>();
+    private final List<View> dynamicViews = new ArrayList<>();
+    private Timer timer;
 
     public UIModifier(Context ctx, Bitmap image, ImageInterface ii){
         this.ctx = ctx;
@@ -71,6 +86,8 @@ public class UIModifier {
 
             // Create Degree Count EditText
             EditText degreeCount = new EditText(ctx);
+            degreeCount.setTextColor(Color.BLACK);
+            degreeCount.setBackgroundColor(Color.GRAY);
             degreeCount.setHint("Degree count");
             degreeCount.setInputType(InputType.TYPE_CLASS_NUMBER);
             degreeCount.setId(View.generateViewId()); // Assign an ID for referencing
@@ -153,6 +170,91 @@ public class UIModifier {
         }
     }
 
+    public void modifyForImageUrlInput(){
+        try {
+
+            if (!dynamicViews.isEmpty()) destroy();
+
+            cl = ((Activity) ctx).findViewById(R.id.main_constraint);
+
+
+            EditText editText = new EditText(ctx);
+            editText.setTextSize(16);
+            editText.setHint("Type URL here ...");
+            editText.setId(View.generateViewId());
+            editText.setTextColor(Color.BLACK);
+            editText.setBackgroundColor(Color.GRAY);
+
+            ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            params.bottomToTop = R.id.generateBtn;
+            params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+
+            editText.setLayoutParams(params);
+
+            final String[] textData = new String[1];
+            editText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                   if (timer != null){
+                       timer.cancel();
+                   }
+
+                   textData[0] = charSequence.toString();
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+
+                            if (textData[0].contains("http") && isValidURI(textData[0])){
+                                Log.d("urlCheck", "URL IS VALID!");
+                                Endpoints.fetchImageByURL(textData[0], new ImageFetchCallback() {
+                                    @Override
+                                    public void onSuccess(Bitmap bmp) {
+                                        if (bmp != null){
+                                            new Handler(Looper.getMainLooper()).post(() -> {
+                                                listener.updateImage(bmp);
+                                                Toast.makeText(ctx, "Image updated successfully", Toast.LENGTH_SHORT).show();
+
+                                            });
+                                        }else{
+                                            Log.d("Fetch image", "image is null1!1");
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(String error) {
+                                        Toast.makeText(ctx, error, Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
+
+                            }
+                        }
+                    }, 2000);
+                }
+            });
+
+            addViewToLayout(editText);
+
+            generatedFlag = true;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     private void addViewToLayout(View view) {
         cl.addView(view);
         dynamicViews.add(view);
@@ -195,6 +297,18 @@ public class UIModifier {
 
             dynamicViews.clear();
             generatedFlag = false;
+        }
+    }
+
+    private boolean isValidURI(String url){
+        try {
+            URL u = new URL(url); // this would check for the protocol
+            u.toURI();
+            Log.d("Fetch image", "incoming url is " + url);
+            return true;
+        } catch (MalformedURLException | URISyntaxException e) {
+            Toast.makeText(ctx, "Invalid URL specified!", Toast.LENGTH_SHORT).show();
+            return false;
         }
     }
 }

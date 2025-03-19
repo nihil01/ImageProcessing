@@ -7,5 +7,4 @@ public interface ImageInterface {
     void modifySaveBtn(boolean state);
     void modifyGenerateBtn(boolean state);
 
-
 }

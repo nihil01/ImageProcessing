@@ -9,7 +9,7 @@
         <item>Highlight Image</item>
         <item>Hue Filter</item>
 
-
+        <item>Get image by URL</item>
         <item>Grayscale</item>
         <item>Gamma Correction</item>
         <item>Gaussian Blur</item>
@@ -40,6 +40,14 @@
 
         <item>Emboss</item>
         <item>Engrave</item>
+
+        <item>--PROCESSED ON SERVER--</item>
+        <item>Image Blending (2 images)</item>
+        <item>Canny</item>
+        <item>Random Color Space</item>
+        <item>Histogram</item>
+        <item>Threshold</item>
+
 
 
     </string-array>

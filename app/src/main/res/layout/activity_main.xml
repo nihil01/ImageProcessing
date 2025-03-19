@@ -34,9 +34,9 @@
 
         <LinearLayout
             android:id="@+id/linearLayout"
-            android:layout_width="397dp"
-            android:layout_height="99dp"
             style="@style/ControlLayoutStyle"
+            android:layout_width="403dp"
+            android:layout_height="104dp"
             android:layout_marginBottom="164dp"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -45,45 +45,49 @@
 
             <Spinner
                 android:id="@+id/dropdown"
+                style="@style/DropdownStyle"
                 android:layout_width="195dp"
                 android:layout_height="48dp"
-                style="@style/DropdownStyle"
                 android:layout_weight="1" />
 
             <Button
                 android:id="@+id/imagePick"
+                style="@style/ImagePickButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                style="@style/ImagePickButtonStyle"
                 android:layout_weight="1"
                 android:text="@string/select_image" />
         </LinearLayout>
 
         <Button
             android:id="@+id/generateBtn"
-            android:layout_width="361dp"
-            android:layout_height="67dp"
             style="@style/GenerateButtonStyle"
+            android:layout_width="350dp"
+            android:layout_height="60dp"
             android:text="GENERATE"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.491"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+            app:layout_constraintVertical_bias="0.066" />
 
         <TextView
             android:id="@+id/imageData"
+            style="@style/ImageDataTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/ImageDataTextStyle"
             android:text="@string/picture_data_will_be_displayed_here"
             app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+            app:layout_constraintTop_toBottomOf="@+id/imageView"
+            app:layout_constraintVertical_bias="0.192"
+            tools:layout_editor_absoluteX="0dp" />
 
         <Button
             android:id="@+id/saveBtn"
-            android:layout_width="348dp"
-            android:layout_height="60dp"
             style="@style/SaveButtonStyle"
+            android:layout_width="350dp"
+            android:layout_height="60dp"
             android:text="SAVE"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

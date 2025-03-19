@@ -21,7 +21,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.exifinterface.media.ExifInterface;
-
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,10 +31,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
 import world.horosho.prictureprocessor.R;
+import world.horosho.prictureprocessor.http.Endpoints;
+
 import world.horosho.prictureprocessor.imageProcessing.executor.AsyncExecutor;
 import world.horosho.prictureprocessor.imageProcessing.engine.ImageProcessor;
 import world.horosho.prictureprocessor.ui.dialogs.DialogTypes;
@@ -42,6 +46,7 @@ import world.horosho.prictureprocessor.ui.dialogs.DialogWindow;
 public class MainUIProvider extends AppCompatActivity {
     protected Context ctx;
     private Bitmap image;
+    private Bitmap[] multipleImages;
     private Spinner imagePreset;
     private ImageInterface updateListener;
     private UIModifier um;
@@ -79,9 +84,13 @@ public class MainUIProvider extends AppCompatActivity {
                         else if (adapterView.getSelectedItem().toString().equals("Mirroring")){
                             um.modifyForImageMirroring();
 
-                        }else{
+                        }
+                        else if(adapterView.getSelectedItem().toString().equals("Get image by URL")){
+                            um.modifyForImageUrlInput();
+                            updateListener.modifySaveBtn(true);
+                        }
+                        else{
                             um.destroy();
-
                         }
 
                     }
@@ -98,14 +107,48 @@ public class MainUIProvider extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    public void resolveImageData(Uri imageUri, String[] proj, TextView imageData){
-        try(Cursor cursor = ctx.getContentResolver().query(imageUri, proj, null,null,null)){
+    private void resolvePerImage(Uri imageUri, String[] proj, TextView imageData){
+        try(Cursor cursor = ctx.getContentResolver().query(imageUri, proj, null, null,null)){
             if (cursor != null && cursor.moveToFirst()) {
                 imageData.setText(getImageInfo(cursor) + getMetaDataInfo(imageUri));
-            };
+            }
         } catch (Exception e) {
             Log.d("imageData", Objects.requireNonNull(e.getMessage()));
         }
+    }
+
+    public void resolveImageData(List<Uri> imageUri, String[] proj, TextView imageData) {
+
+        if (imageUri.size() > 1){
+
+            if (multipleImages == null || multipleImages.length < imageUri.size()) {
+                multipleImages = new Bitmap[imageUri.size()];
+            }
+
+            for (int i = 0; i < imageUri.size(); i++) {
+
+                //no need for image metadata with projection var
+                    ContentResolver cr = ctx.getContentResolver();
+
+                try {
+                    InputStream is = cr.openInputStream(imageUri.get(i));
+
+                    if (is != null){
+
+                        multipleImages[i] = BitmapFactory.decodeStream(is);
+                        is.close();
+
+                    }
+                } catch (IOException e) {
+                    Log.e("NOT_FOUND", e.getMessage());
+                }
+
+
+            }
+
+        }
+
+        resolvePerImage(imageUri.get(0), proj, imageData);
     }
 
     protected void updateImageView(Bitmap bm){
@@ -226,7 +269,7 @@ public class MainUIProvider extends AppCompatActivity {
         //value of dropdown item
         String itemVal = selectedSpinnerValue.toString();
 
-        ImageProcessor ip = new ImageProcessor(image);
+        ImageProcessor ip = new ImageProcessor(image, multipleImages);
         AsyncExecutor ae = new AsyncExecutor(ctx, updateListener);
         DialogWindow dialogWindow = new DialogWindow(ctx, ip, ae);
 
@@ -328,6 +371,26 @@ public class MainUIProvider extends AppCompatActivity {
                 }
                 case "Shading": {
                     ae.exec(ip::applyShadingFilter);
+                    break;
+                }
+                case "Image Blending (2 images)": {
+                    ip.sendDataToServerForProcessing("blend_images", updateListener);
+                    break;
+                }
+                case "Histogram": {
+                    ip.sendDataToServerForProcessing("histogram", updateListener);
+                    break;
+                }
+                case "Threshold" : {
+                    ip.sendDataToServerForProcessing("threshold", updateListener);
+                    break;
+                }
+                case "Random Color Space": {
+                    ip.sendDataToServerForProcessing("random_color_space", updateListener);
+                    break;
+                }
+                case "Canny": {
+                    ip.sendDataToServerForProcessing("canny", updateListener);
                     break;
                 }
             }

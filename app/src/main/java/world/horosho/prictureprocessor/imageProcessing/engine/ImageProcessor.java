@@ -1,6 +1,7 @@
 package world.horosho.prictureprocessor.imageProcessing.engine;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,18 +12,28 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.util.Log;
 
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Random;
 
 import world.horosho.prictureprocessor.R;
+import world.horosho.prictureprocessor.http.Endpoints;
+import world.horosho.prictureprocessor.http.ImageFetchCallback;
+import world.horosho.prictureprocessor.ui.ImageInterface;
 
 public class ImageProcessor {
     private final Bitmap src;
+    private Bitmap[] images;
+
     private final int COLOR_MAX = 0xff;
     private final int COLOR_MIN = 0x00;
 
-    public ImageProcessor(Bitmap img) {
+    public ImageProcessor(Bitmap img, Bitmap[] multipleImages) {
         this.src = img;
+        this.images = multipleImages;
     }
 
 
@@ -693,6 +704,34 @@ public class ImageProcessor {
         Bitmap bmOut = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         bmOut.setPixels(pixels, 0, width, 0, 0, width, height);
         return addWatermark(bmOut);
+    }
+
+    public void sendDataToServerForProcessing(String params, ImageInterface updateListener){
+
+        if (images == null && src == null){
+            return;
+        }
+
+        if (images == null) images = new Bitmap[1];
+        images[0] = src;
+
+        Log.d("Current images", Arrays.toString(images));
+
+        Endpoints.sendData(images, params, new ImageFetchCallback() {
+            @Override
+            public void onSuccess(Bitmap bitmap) {
+                if (bitmap != null){
+                    updateListener.updateImage(bitmap);
+                }
+
+            }
+
+
+            @Override
+            public void onFailure(String error) {
+                Log.d("ImageError", error);
+            }
+        });
     }
 }
 

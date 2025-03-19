@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 
 import androidx.activity.EdgeToEdge;
@@ -24,6 +25,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import world.horosho.prictureprocessor.ui.ImageInterface;
 import world.horosho.prictureprocessor.ui.MainUIProvider;
@@ -68,59 +72,41 @@ public class MainActivity extends AppCompatActivity implements ImageInterface {
     public void requestPictureActivity(){
         Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
         photoPickerIntent.setType("image/*");
+        photoPickerIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         resultLauncher.launch(photoPickerIntent);
     }
 
-    ActivityResultLauncher<Intent> resultLauncher = registerForActivityResult(
+     ActivityResultLauncher<Intent> resultLauncher = registerForActivityResult(
         new ActivityResultContracts.StartActivityForResult(),
         result -> {
             if (result.getResultCode() == Activity.RESULT_OK) {
                 Intent data = result.getData();
+                List<Uri> imageURIs = new ArrayList<>();
 
                 try {
-                    if (data != null) {
-                        Uri imageUri = data.getData();
-                        if (imageUri != null) {
-                            // Get the parent layout that contains the current ImageView
+                    if (data != null && data.getClipData() != null) {
 
-                            ImageView originalImageView = findViewById(R.id.imageView);
-                            ViewGroup parent = (ViewGroup) originalImageView.getParent();
-                            int index = parent.indexOfChild(originalImageView);
+                        int count = data.getClipData().getItemCount();
 
-                            // Create the new ScalableImageView
-                            ScalableImageView siv = new ScalableImageView(this);
-                            siv.setId(R.id.imageView); // Keep the same ID
-
-                            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT, 1080);
-
-
-                            siv.setPaddingRelative(
-                                    50,50,50,50
-                            );
-
-                            siv.setLayoutParams(params);
-
-                            siv.setBackgroundResource(R.drawable.image_border);
-
-                            // Set the image URI
-                            siv.setImageURI(imageUri);
-
-                            // Replace the original ImageView with ScalableImageView
-                            parent.removeView(originalImageView);
-                            parent.addView(siv, index);
-
-                            // Fetch and display image metadata
-                            String[] projection = {
-                                    MediaStore.Images.Media.DATE_TAKEN,
-                                    MediaStore.Images.Media.MIME_TYPE,
-                                    MediaStore.Images.Media.SIZE
-                            };
-
-                            modifySaveBtn(false);
-                            gen.resolveImageData(imageUri, projection, findViewById(R.id.imageData));
+                        if (count > 2) {
+                            Toast.makeText(this, "Please, select 1 or 2 images ..", Toast.LENGTH_LONG).show();
+                            return;
                         }
+
+                        for (int i = 0; i < count; i++) {
+
+                            Uri image = data.getClipData().getItemAt(i).getUri();
+                            imageURIs.add(image);
+
+                        }
+                    }else if (data != null && data.getData() != null){
+
+                        Uri image = data.getData();
+                        imageURIs.add(image);
+
                     }
+
+                    processImages(imageURIs);
                 } catch (Exception e) {
                     Log.e("imageErr", "Error setting image: " + e.getMessage());
                     e.printStackTrace();
@@ -128,6 +114,45 @@ public class MainActivity extends AppCompatActivity implements ImageInterface {
             }
         });
 
+
+    private void processImages(List<Uri> imageURIs){
+        ImageView originalImageView = findViewById(R.id.imageView);
+        ViewGroup parent = (ViewGroup) originalImageView.getParent();
+        int index = parent.indexOfChild(originalImageView);
+
+        // Create the new ScalableImageView
+        ScalableImageView siv = new ScalableImageView(this);
+        siv.setId(R.id.imageView); // Keep the same ID
+
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 1080);
+
+
+        siv.setPaddingRelative(
+                50,50,50,50
+        );
+
+        siv.setLayoutParams(params);
+
+        siv.setBackgroundResource(R.drawable.image_border);
+
+        // Set the image URI
+        siv.setImageURI(imageURIs.get(0));
+
+        // Replace the original ImageView with ScalableImageView
+        parent.removeView(originalImageView);
+        parent.addView(siv, index);
+
+        // Fetch and display image metadata
+        String[] projection = {
+                MediaStore.Images.Media.DATE_TAKEN,
+                MediaStore.Images.Media.MIME_TYPE,
+                MediaStore.Images.Media.SIZE
+        };
+
+        modifySaveBtn(false);
+        gen.resolveImageData(imageURIs, projection, findViewById(R.id.imageData));
+    }
 
     //interface methods
     @Override
