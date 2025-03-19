@@ -1,10 +1,18 @@
 package world.horosho.prictureprocessor;
 
+import static android.icu.number.NumberRangeFormatter.with;
+
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import android.provider.MediaStore;
@@ -21,20 +29,34 @@ import androidx.activity.EdgeToEdge;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkManagerInitializer;
+import androidx.work.WorkRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import world.horosho.prictureprocessor.notifications.NotificationService;
 import world.horosho.prictureprocessor.ui.ImageInterface;
 import world.horosho.prictureprocessor.ui.MainUIProvider;
 import world.horosho.prictureprocessor.ui.ScalableImageView;
 
 public class MainActivity extends AppCompatActivity implements ImageInterface {
     private MainUIProvider gen;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +89,12 @@ public class MainActivity extends AppCompatActivity implements ImageInterface {
         if (genBtn != null){
             genBtn.setOnClickListener(e -> gen.processImageFilter());
         }
+
+        //initial check for notifications
+        if (!NotificationService.checkNotificationPermission(this)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
+        }
+
     }
 
     public void requestPictureActivity(){
@@ -154,7 +182,42 @@ public class MainActivity extends AppCompatActivity implements ImageInterface {
         gen.resolveImageData(imageURIs, projection, findViewById(R.id.imageData));
     }
 
+    public void setWorkManager() {
+        String workTag = "image_processor";
+        WorkManager wi = WorkManager.getInstance(this);
+
+        wi.getWorkInfosByTagLiveData(workTag).observeForever(workInfos -> {
+            boolean exists = false;
+
+            for (WorkInfo workInfo : workInfos) {
+                if (workInfo.getState() == WorkInfo.State.ENQUEUED || workInfo.getState() == WorkInfo.State.RUNNING) {
+                    exists = true;
+                    break;
+                }
+
+            }
+
+            if (!exists){
+                WorkRequest workRequest = new PeriodicWorkRequest.Builder(NotificationService.class,
+                        15, TimeUnit.MINUTES).addTag(workTag).build();
+                WorkManager.getInstance(this).enqueue(workRequest);
+            }
+        });
+    }
+
+
     //interface methods
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                setWorkManager(); // Запуск воркера после получения разрешения
+            } else {
+                Log.e("Permissions", "Разрешение на уведомления отклонено");
+            }
+        }
+    }
     @Override
     public void updateImage(Bitmap img) {
         ((ImageView)findViewById(R.id.imageView)).setImageBitmap(img);
